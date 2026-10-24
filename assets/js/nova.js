@@ -101,6 +101,34 @@
     activer(0);
   }
 
+  /* Barre d'actions du bas (téléphone) : masquée tant que les boutons de la page sont à l'écran,
+     elle reprend le relais dès qu'ils sortent de l'écran */
+  var barre = doc.querySelector('.nv-actionbar');
+  var boutons = doc.querySelectorAll('.nv-hero-actions, .nv-appel .pv-actions');
+  if (barre && boutons.length && 'IntersectionObserver' in window) {
+    var visibles = [];
+    var io = new IntersectionObserver(function (entrees) {
+      entrees.forEach(function (en) {
+        var i = visibles.indexOf(en.target);
+        if (en.isIntersecting && i < 0) visibles.push(en.target);
+        if (!en.isIntersecting && i >= 0) visibles.splice(i, 1);
+      });
+      barre.classList.toggle('est-masque', visibles.length > 0);
+    });
+    each(boutons, function (b) { io.observe(b); });
+  }
+
+  /* Étapes d'un chantier : sur téléphone elles défilent de côté ; le clavier doit pouvoir les atteindre */
+  each(doc.querySelectorAll('.nv-m-etapes'), function (ol) {
+    var maj = function () {
+      var defile = ol.scrollWidth > ol.clientWidth + 1;
+      if (defile) { ol.tabIndex = 0; ol.setAttribute('aria-label', 'Les étapes du chantier, à faire défiler'); }
+      else { ol.removeAttribute('tabindex'); ol.removeAttribute('aria-label'); }
+    };
+    maj();
+    window.addEventListener('resize', maj);
+  });
+
   /* Disponibilités : les semaines finies disparaissent, le prochain créneau libre suit la date du jour.
      S'il ne reste aucune semaine à venir, le planning et les annonces de créneau se masquent. */
   var DJ = doc.getElementById('nv-dispo');
